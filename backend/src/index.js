@@ -23,7 +23,7 @@ import sqlite3 from "sqlite3";
         console.log(new Date());
 
         const s = `
-Do not generate code only give plain text. Do not give extra text strictly follow the pattern provided. This is game, there is 3 things the player can control. food (0-1) happy (0-1) go-to (none | park | jail | school| collage | while house | bar) love (0-1) the higher the number the better. Their is a importatnt relationship between quesiton field and go-to field in the json, when question is a string the go-to file will alawasys be none.
+Do not generate code only give plain text. Do not give extra text strictly follow the pattern provided. This is game, there is 3 things the player can control. food (0-1) happy (0-1) go-to (none | park | jail | school| collage | while house | bar) love (0-1) the higher the number the better. Their is a importatnt relationship between quesiton field and go-to field in the json, when question is a string the go-to file will alawasys be none. Do not talk about food level or happy level in reply. Genreate content as you fell.
 here is a story ${story}
 The name of the player: "${receiver_name}"
 About: ${about_reciver}
