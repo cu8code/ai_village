@@ -5,6 +5,7 @@ import { AsyncDatabase } from "promised-sqlite3";
 import sqlite3 from "sqlite3";
 
 (async () => {
+    let story =""
     const app = express()
     const REPLICATE_API_TOKEN = "r8_XarCoZsjFN8ybPyFFi0QUJwImPYj7ml3sRyRV"
     const replicate = new Replicate({
@@ -19,10 +20,11 @@ import sqlite3 from "sqlite3";
             f = `${f}\n${e.sender}: ${atob(e.content)}\n\n\n`
         })
 
-        console.log(f);
+        console.log(new Date());
 
         const s = `
 Do not generate code only give plain text. Do not give extra text strictly follow the pattern provided. This is game, there is 3 things the player can control. food (0-1) happy (0-1) go-to (none | park | jail | school| collage | while house | bar) love (0-1) the higher the number the better. Their is a importatnt relationship between quesiton field and go-to field in the json, when question is a string the go-to file will alawasys be none.
+here is a story ${story}
 The name of the player: "${receiver_name}"
 About: ${about_reciver}
 food: ${reciver_food}
@@ -54,8 +56,9 @@ go-to: "string",
             repetition_penalty: 1.15,
         };
 
-        return await replicate.run("mistralai/mistral-7b-instruct-v0.2", { input })
+        console.log("LOG:",input)
 
+        return await replicate.run("mistralai/mistral-7b-instruct-v0.2", { input })
     }
 
     let db
@@ -96,16 +99,18 @@ go-to: "string",
 
 
     app.post("/", async (req, res) => {
+        console.log("LOG: starting LOG CYCLE ==================================================================================");
         const sender = req.body.sender
         const receiver = req.body.receiver
         const prompt = req.body.prompt
         const about = req.body.about
+        const story = req.body.story
 
         const stat = await readSpecificSenderStat(db, sender)
         const history = await readFormChatDB(db, sender, receiver)
         console.log(history,stat);
 
-        const f = await cook(sender, receiver, about, stat?.food || Math.random(), stat?.happy || Math.random(), history, prompt)
+        const f = await cook(sender, receiver, about, stat?.food || Math.random(), stat?.happy || Math.random(), history, prompt,story)
         const output = await f.join("")
         const lines = output.split("\n")
         lines.shift(); // Remove the first line
@@ -113,12 +118,37 @@ go-to: "string",
         const modifiedString = lines.join('\n');
         try {
             const js = JSON.parse(modifiedString)
+            console.log("LOG: sending json",js);
             writeToChatDB(db, sender, receiver, `${btoa(js.reply)}`)
+            res.send(JSON.stringify(js))
         } catch (e) {
-            console.log(output);
+            console.log("ERROR:",output);
         }
+        console.log("LOG: end LOG CYCLE ======================================================================================");
+        console.log("\n");
 
-        res.send(await f.join(""))
+    })
+
+    app.get("/",(req,res) => {
+        res.send(
+            JSON.stringify(
+                {
+                    "mess": "the network is up"
+                }
+            )
+        )
+    })
+
+
+    app.post("/story",(req,res) => {
+        story = req.body.mess
+        console.log(story);
+        res.send(
+            JSON.stringify({
+                "mess" : "sucess"
+            })
+        )
+        
     })
 
     app.listen(8080, async () => {
